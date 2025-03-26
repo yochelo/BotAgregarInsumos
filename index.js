@@ -2,7 +2,7 @@
 const cors = require('cors');
 const path = require('path');
 const http = require('http');
-const rutaArchivo = "C:/Users/20214715466/Desktop/biomedicos/Remitos/datos/datos.json";
+const rutaArchivo = "C:/Users/lgv/Desktop/Chelo/Remitos/datos/datos.json";
 const { Server } = require('socket.io');
 const fs = require("fs");
 const app = express();
@@ -49,7 +49,7 @@ app.post('/guardar-dataset', (req, res) => {
 
 // Recibe desde txt
 
-
+/*
 app.get('/cargar-desde-txt', (req, res) => {
     const rutaArchivo = path.join(__dirname, 'prueba.txt'); // Archivo en la misma carpeta del backend
 
@@ -71,7 +71,7 @@ app.get('/cargar-desde-txt', (req, res) => {
         res.send("✅ Datos cargados correctamente.");
     });
 });
-
+*/
 
 // Recibe desde puente
 
@@ -476,4 +476,3 @@ const PORT = 3002;
 server.listen(PORT, '0.0.0.0', () => {
     console.log(`Servidor corriendo en http://0.0.0.0:${PORT}`);
 });
-
