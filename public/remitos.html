@@ -1,17 +1,19 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono&display=swap" rel="stylesheet">
     <script src="/socket.io/socket.io.js"></script>
     <script src="drag_drop_cantidades.js"></script>
 
     <title>Ordenador de Remitos</title>
     <style>
         body {
+            overflow-y: auto;
             background-color: #0f172a;
             color: white;
-            font-family: Arial, sans-serif;
+            font-family: 'IBM Plex Mono', monospace;
             margin: 0;
             padding: 0;
             display: flex;
@@ -19,16 +21,20 @@
             align-items: center;
             justify-content: center;
             height: 100vh;
+            font-size: 25px;
         }
 
         .container {            
             background-color: #1e293b;
             padding: 20px;
             border-radius: 8px;
-            width: 80%;
-            overflow-y: hidden; /* Previene que el contenido lo expanda fuera de la pantalla */
+            width: 97%;
             
-        }
+            min-width: 900px; /* Forzamos un mínimo para que no se achique tanto */
+            overflow-y: auto;
+            margin: auto;
+}
+
         .numero-input {
 
             background-color: #1e293b; /* Color oscuro */
@@ -38,7 +44,7 @@
             color: rgb(255, 253, 193) !important;
             text-align: center; /* Centra el número */
             font-weight: bold;
-            font-size: 20px;
+            font-size: 24px;
             
        }
 
@@ -46,16 +52,7 @@
             border-color: #9333ea;
             box-shadow: 0 0 10px rgba(168, 85, 247, 0.7);
         }
-
-        .table-container {
-            flex: 2;
-            background-color: #374151;
-            padding: 15px;
-            border-radius: 8px;
-            overflow-y: visible;
-            max-height: none; /
-        }
-
+        
         h1 {
             font-family: 'Arial', sans-serif;
             font-size: 50px;
@@ -131,8 +128,8 @@
 
         .ok {
             background-color: #fff86f;
-            padding: 12px 18px;
-            border-radius: 36px;
+            padding: 12px 24px;
+            border-radius: 70px;
             font-weight: bold;
             text-transform: uppercase;
             transition: all 0.3s ease-in-out;
@@ -150,23 +147,6 @@
             display: flex;
             gap: 15px;
             
-        }
-
-        .data-box {
-            background-color: #374151;
-            padding: 15px;
-            border-radius: 8px;
-            flex: 1;
-            max-width: 500px; /* Ajustá según lo que veas mejor */
-            width: 100%; /* Para que no se pase del padre */
-
-        }
-
-        .table-container {
-            flex: 2;
-            background-color: #374151;
-            padding: 15px;
-            border-radius: 8px;
         }
 
         table {
@@ -187,24 +167,26 @@
         }
         .content-row {
             display: flex;
-            justify-content: space-between;  /* Asegura que estén alineados */
-            align-items: flex-start;  /* Alinea en la parte superior */
-            gap: 20px;  /* Espacio entre los dos bloques */
-        }
-
-        .data-box {
-            flex: 1;  /* Ambos elementos ocuparán la mitad del espacio */
-            max-width: 40%;  /* Limita el tamaño para que no sea tan ancho */
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 20px;
+            min-width: 100%; /* ¡Clave! Que ocupe todo el ancho del container */
         }
 
         .table-container {
-            flex: 2;  /* La tabla ocupa más espacio */
-            max-width: 60%;
-            overflow-x: auto;  /* Agrega scroll horizontal si es necesario */
+            flex: 1 1 50%;  /* 50% espacio */
+            background-color: #374151;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;  /* Scroll horizontal si hace falta */
+            max-height: none;
+            transition: all 0.7s ease;
         }
+
 
                 /* Centramos los encabezados */
                 #tabla-datos thead th {
+            white-space: nowrap;
             text-align: center;
         }
 
@@ -279,7 +261,7 @@
             color: white;
             padding: 20px;
             border-radius: 10px;
-            font-size: 18px;
+            font-size: 30px;
             text-align: center;
             z-index: 1000;
             box-shadow: 0 4px 10px rgba(255, 255, 255, 0.3);
@@ -319,17 +301,80 @@
             min-width: 50px;
             min-height: 20px;
         }
-        
-        .scroll-container {
-          max-height: 100vh; /* Altura máxima igual a la ventana */
-          overflow-y: auto; /* Scroll vertical */
+
+        /*sidebar*/
+        .data-box, 
+        .data-box * {
+            font-family: 'IBM Plex Mono', monospace !important;
         }
+
+        .data-box {
+            flex: 1 1 50%; /* <-- flex-grow flex-shrink flex-basis */
+            font-family: 'IBM Plex Mono', monospace;
+            position: relative;
+            background-color: #374151;
+            padding: 15px;
+            border-radius: 8px;
+            min-width: 0;      /* Nunca muy chico al inicio */
+            transition: all 0.7s ease;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            max-width: none;
+            
+        }
+
+        .data-box.collapsed {
+            flex: 0 0 50px;  /* Pequeño cuando colapsa */
+            width: 50px;           /* Para que colapse bien */
+            padding: 10px 5px;
+        }
+
+        .data-box h2, 
+        #datosEntrada {
+            transition: opacity 0.3s ease;
+        }
+
+        .data-box.collapsed h2,
+        .data-box.collapsed #datosEntrada {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* Toggle Button */
+        #toggleLateral {
+            position: absolute;
+            top: 10px;
+            right: 5px;
+            background-color: #475569;
+            color: #FFFDC1;
+            border: none;
+            border-radius: 5px;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            font-size: 20px;
+            font-weight: bold;
+            transition: all 0.7s ease;
+            z-index: 10;
+            
+            /* Centro el triángulo */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #toggleLateral:hover {
+            background-color: #64748b;
+        }
+
+
+        
 
 
     </style>
 </head>
 <body>
-    <div class="scroll-container">
     <div class="container">
         <h1>▸ GESTIÓN DE REMITOS ◂</h1>
     
@@ -354,10 +399,10 @@
         </div>
         
     
-        <!-- NUEVO CONTENEDOR PARA ALINEAR DATOS Y TABLA -->
         <div class="content-row">
             <!-- Datos de Entrada (Texto en crudo) -->
-            <div class="data-box">
+            <div class="data-box" id="dataBox">
+                <button id="toggleLateral">◄</button> <!-- Flechita -->
                 <h2>Datos de entrada</h2>
                 <pre id="datosEntrada"></pre> <!-- Aquí se muestran los datos en bruto -->
             </div>
@@ -416,6 +461,25 @@ socket.on("disconnect", () => {
     console.log("❌ Desconectado del servidor WebSocket");
 });
 
+function colorearDatosEntrada(textoCrudo) {
+    const contenedor = document.getElementById('datosEntrada');
+    contenedor.innerHTML = ''; // Limpiamos el contenido previo
+
+    const colores = ['#a1fff8', '#ffd6a1', '#FFD93D', '#ffffff', '#FF8C42'];
+
+    const parrafos = textoCrudo.split('\n'); // Cortamos por salto de línea
+
+    parrafos.forEach((linea, index) => {
+        if (linea.trim() !== '') {
+            const parrafoElement = document.createElement('p');
+            parrafoElement.textContent = linea;
+            parrafoElement.style.color = colores[index % colores.length];
+            contenedor.appendChild(parrafoElement);
+        }
+    });
+}
+
+
 
 function formatearFechasDataset(texto) {
     console.log("📌 Iniciando formateo de fechas en el dataset...");
@@ -449,80 +513,45 @@ function formatearFechasDataset(texto) {
 }
 
 
-
-
 // Hacer el bloque de datos editable con doble clic
 let datosEntrada = document.getElementById("datosEntrada");
 
 datosEntrada.addEventListener("dblclick", () => {
-    let textoActual = datosEntrada.innerText;
-    let textarea = document.createElement("textarea");
-    textarea.value = textoActual;
-    textarea.style.width = "100%";
-    textarea.style.height = "200px";
-    textarea.style.fontSize = "16px";
-
-    // Reemplaza el div por el textarea
-    datosEntrada.replaceWith(textarea);
-    textarea.focus();
-
-    // Guardar cambios al perder el foco o presionar Enter
-    textarea.addEventListener("blur", () => guardarEdicion(textarea));
-    textarea.addEventListener("keydown", (event) => {
-        if (event.key === "Enter" && !event.shiftKey) {
-            event.preventDefault();
-            guardarEdicion(textarea);
-        }
-    });
+    datosEntrada.contentEditable = true;
+    datosEntrada.focus();
 });
+
 
 document.getElementById("datosEntrada").addEventListener("dblclick", activarEdicion);
 
-function activarEdicion() {
-    let textoActual = this.innerText;
-    let textarea = document.createElement("textarea");
-    textarea.value = textoActual;
-    textarea.style.width = "100%";
-    textarea.style.height = "200px";
-    textarea.style.fontSize = "16px";
+datosEntrada.addEventListener("dblclick", () => {
+    datosEntrada.contentEditable = true;
+    datosEntrada.focus();
+});
 
-    this.replaceWith(textarea);
-    textarea.focus();
+datosEntrada.addEventListener("blur", () => {
+    datosEntrada.contentEditable = false;
+});
 
-    textarea.addEventListener("blur", () => guardarEdicion(textarea));
-    textarea.addEventListener("keydown", (event) => {
-        if (event.key === "Enter" && !event.shiftKey) {
-            event.preventDefault();
-            guardarEdicion(textarea);
-        }
-    });
-}
+datosEntrada.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        datosEntrada.blur(); // Dispara el blur
+    }
+});
 
-function guardarEdicion(textarea) {
-        let textoEditado = textarea.value;
-    let nuevoDiv = document.createElement("div");
-    nuevoDiv.id = "datosEntrada";
-    nuevoDiv.innerText = textoEditado;
-    nuevoDiv.addEventListener("dblclick", activarEdicion);
-    
-    textarea.replaceWith(nuevoDiv);
-}
+
+
 let datos = {};
 socket.on("nuevosDatos", (datos) => {
     console.log("📌 Datos recibidos:", datos);
 
-    // 🟢 Aplicamos el formateo de fechas al dataset ANTES de mostrarlo
+    // 1️⃣ Formateamos fechas
     let datosFormateados = formatearFechasDataset(datos);
 
-    // Insertar los datos formateados en "Datos de entrada"
-    let elementoDatos = document.getElementById("datosEntrada");
-    if (elementoDatos) {
-        elementoDatos.innerText = datosFormateados;
-    } else {
-        console.error("❌ No se encontró el elemento con ID 'datosEntrada'");
-    }
+    // 2️⃣ Coloreamos y mostramos en "Datos de entrada"
+    colorearDatosEntrada(datosFormateados);
 });
-
 
 
 socket.on("datosOrdenados", (datos) => {
@@ -543,19 +572,23 @@ socket.on("datosOrdenados", (datos) => {
 // Función separada para renderizar la tabla
 function renderizarDatos(data) {
     let tabla = document.getElementById("tabla-datos").getElementsByTagName("tbody")[0] || document.getElementById("tabla-datos");
-    tabla.innerHTML = "";  
+    tabla.innerHTML = "";
 
     if (Array.isArray(data.nne) && data.nne.length > 0) {
         data.nne.forEach((_, index) => {
             let fila = document.createElement("tr");
 
+            // Formateo cantidades y precios con separadores de miles
+            let cantidad = data.cantidades && data.cantidades[index] ? Number(data.cantidades[index]).toLocaleString('es-ES') : "";
+            let precio = datos.precios && datos.precios[index] ? Number(datos.precios[index]).toLocaleString('es-ES', { style: 'currency', currency: 'ARS' }) : "";
+
             fila.innerHTML = `
-                <td>${data.cantidades && data.cantidades[index] ? data.cantidades[index] : ""}</td>
+                <td>${cantidad}</td>
                 <td>${data.marca && data.marca[index] ? data.marca[index] : ""}</td>
                 <td>${data.lotes && data.lotes[index] ? data.lotes[index] : ""}</td>
                 <td>${data.vencimientos && data.vencimientos[index] ? data.vencimientos[index] : ""}</td>
                 <td>${data.nne && data.nne[index] ? data.nne[index] : ""}</td>
-                <td data-precio="true" style="color: "#FFFDC1";">${datos.precios && datos.precios[index] ? `$${datos.precios[index]}` : ""}</td>
+                <td data-precio="true" style="color: #FFFDC1;">${precio}</td>
             `;
 
             tabla.appendChild(fila);
@@ -564,6 +597,7 @@ function renderizarDatos(data) {
         tabla.innerHTML = `<tr><td colspan="5" class="empty">No hay datos aún</td></tr>`;
     }
 }
+
 
 socket.on("connect_error", (error) => {
     console.error("❌ Error de conexión a WebSocket:", error);
@@ -615,45 +649,51 @@ document.getElementById("guardar-json").addEventListener("click", async () => {
     let productos = [];
 
     for (const fila of filas) {
-        const columnas = fila.querySelectorAll("td");
+    const columnas = fila.querySelectorAll("td");
 
-        if (columnas.length < 6) continue;
+    if (columnas.length < 6) continue;
 
-        let cantidad = columnas[0].textContent.trim();
-        let marca = columnas[1].textContent.trim();
-        let lote = columnas[2].textContent.trim();
-        let vencimiento = columnas[3].textContent.trim();
-        let nne = columnas[4].textContent.trim();
-        let precio = columnas[5].textContent.trim();
+    let cantidad = columnas[0].textContent.trim();
+    let marca = columnas[1].textContent.trim();
+    let lote = columnas[2].textContent.trim();
+    let vencimiento = columnas[3].textContent.trim();
+    let nne = columnas[4].textContent.trim();
+    let precio = columnas[5].textContent.trim();
 
-        // 🔥 Procesamos la marca en el backend ANTES de guardarla
-        let marcaProcesada = "N/A"; // Valor por defecto
-        try {
-            const response = await fetch("http://localhost:3002/procesar-marca", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ marca }) // Enviamos la marca al backend
-            });
+    // 🔥 Sacamos puntos de mil para guardar limpio
+    let cantidadSinPuntos = cantidad.replace(/\./g, '');
+    let precioSinPuntos = precio.replace(/[^\d,]/g, '').replace(/\./g, ''); 
+    // Extra: elimino $ y puntos, dejo coma si es decimal
 
-            if (response.ok) {
-                const result = await response.json();
-                marcaProcesada = result.marca || "N/A"; // Si el backend devuelve la marca, la usamos
-            } else {
-                console.error("❌ Error al procesar marca en backend");
-            }
-        } catch (error) {
-            console.error("⚠️ Error en la solicitud de marca:", error);
-        }
-
-        productos.push({
-            cantidad: cantidad || "N/A",
-            lote: lote || "N/A",
-            marca: marcaProcesada,
-            vencimiento: convertirFecha(vencimiento) || "N/A",
-            nne: nne || "N/A",
-            precio: formatearPrecio(precio) || "N/A"
+    // Procesamos marca (tu parte backend)
+    let marcaProcesada = "N/A";
+    try {
+        const response = await fetch("http://localhost:3002/procesar-marca", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ marca })
         });
+
+        if (response.ok) {
+            const result = await response.json();
+            marcaProcesada = result.marca || "N/A";
+        } else {
+            console.error("❌ Error al procesar marca en backend");
+        }
+    } catch (error) {
+        console.error("⚠️ Error en la solicitud de marca:", error);
     }
+
+    productos.push({
+        cantidad: cantidadSinPuntos || "N/A",
+        lote: lote || "N/A",
+        marca: marcaProcesada,
+        vencimiento: convertirFecha(vencimiento) || "N/A",
+        nne: nne || "N/A",
+        precio: precioSinPuntos || "N/A"
+    });
+}
+
 
     const data = {
         remito: remito || "N/A",
@@ -898,6 +938,21 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 });
+const dataBox = document.getElementById('dataBox');
+const toggleBtn = document.getElementById('toggleLateral');
+
+toggleBtn.addEventListener('click', () => {
+    dataBox.classList.toggle('collapsed');
+    if (dataBox.classList.contains('collapsed')) {
+        toggleBtn.innerHTML = '▷';
+
+    } else {
+        toggleBtn.innerHTML = '◄';
+    }
+});
+
+
+
     </script>
 
 <div id="popup" class="popup">
