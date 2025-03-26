@@ -1,6 +1,6 @@
 # 🤖 Bot de Carga de Insumos para SIGHEOS
 
-Este proyecto automatiza el ingreso de insumos médicos al sistema hospitalario **SIGHEOS** a partir de pedidos físicos. Usa un enfoque multietapa que integra OCR, APIs propias, procesamiento en navegador y un bot en Python con Selenium.
+Este proyecto automatiza el ingreso de insumos médicos al sistema hospitalario **SIGHEOS** a partir de Remitos físicos. Usa un enfoque multietapa que integra OCR, APIs propias, procesamiento en navegador y un bot en Python con Selenium.
 
 > 📌 Este repositorio incluye el código fuente completo y abierto. Podés revisarlo, comentarlo o adaptarlo a tu entorno. ¡Todo suma!
 
