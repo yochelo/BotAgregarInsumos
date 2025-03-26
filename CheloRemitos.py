@@ -12,17 +12,17 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support.ui import Select
 
 # Configuración para Chrome en modo depuración
-debugging_port = 9229
+debugging_port = 9223
 options = webdriver.ChromeOptions()
 options.debugger_address = f"localhost:{debugging_port}"
 
-driver_path = r"C:\Users\20214715466\Desktop\biomedicos\chromedriver-win64\chromedriver.exe"
+driver_path = r"C:\Users\lgv\Desktop\Chelo\chromedriver_win32\chromedriver.exe"
 service = Service(driver_path)
 driver = webdriver.Chrome(service=service, options=options)
 wait = WebDriverWait(driver, 15)
 
 # Leer el JSON
-json_path = r"C:\Users\20214715466\Desktop\biomedicos\Remitos\datos\datos.json"
+json_path = r"C:\Users\lgv\Desktop\Chelo\Remitos\datos\datos.json"
 with open(json_path, "r", encoding="utf-8") as f:
     datos = json.load(f)
 
@@ -91,7 +91,7 @@ except Exception as e:
 # ------------------------------
 
 # Leer equivalencias NNE
-equivalencias_path = r"C:\Users\20214715466\Desktop\biomedicos\Remitos\datos\nne_equivalencias.json"
+equivalencias_path = r"C:\Users\lgv\Desktop\Chelo\Remitos\datos\nne_equivalencias.json"
 
 with open(equivalencias_path, "r", encoding="utf-8") as f:
     equivalencias = json.load(f)
