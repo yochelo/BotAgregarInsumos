@@ -1,4 +1,0 @@
-CheloRemitos.py linguist-language=Python
-public/* linguist-detectable=false
-*.html linguist-detectable=false
-*.js linguist-detectable=false
