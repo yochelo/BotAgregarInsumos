@@ -49,15 +49,31 @@ Este proyecto automatiza el ingreso de insumos médicos al sistema hospitalario 
 
 ---
 
-## 🧰 Tecnologías utilizadas
+## ⚙️ Instalación y ejecución
 
-- Python + Selenium
-- HTML, CSS y JavaScript
-- JSON para almacenamiento estructurado
-- APIs locales simuladas
-- OCR externo desde celular
+> ⚠️ **IMPORTANTE: Requisito esencial**  
+>
+> Este bot requiere que tengas instalado `chromedriver` en tu sistema para funcionar con Selenium.  
+>
+> 🔗 Descargalo desde: [https://chromedriver.chromium.org/downloads](https://chromedriver.chromium.org/downloads)  
+> 🧠 Asegurate de que la versión de `chromedriver` coincida con tu navegador **Google Chrome**.  
+> 🛠️ Y recordá que debe estar en tu variable de entorno `PATH`.
+
+
+
+1. **Cloná el repositorio**:
+   ```bash
+   git clone https://github.com/yochelo/BotAgregarInsumos.git
+   cd BotAgregarInsumos
+   python -m venv venv
+   venv\Scripts\activate   # En Windows
+   # o
+   source venv/bin/activate  # En Linux/Mac
+   pip install -r requirements.txt
+   python CheloRemitos.py
 
 ---
+
 
 ## 🔐 Licencia
 
@@ -70,5 +86,8 @@ Este proyecto se distribuye bajo la [Licencia MIT](LICENSE), lo que significa qu
 
 ---
 
-📧 mazzara.marcelo@gmail.com  
-🌍 Ciudad de Buenos Aires, Argentina
+👤 Autor
+Marce
+📍 Ciudad de Buenos Aires, Argentina
+📧 mazzara.marcelo@gmail.com
+🐙 GitHub: @yochelo
