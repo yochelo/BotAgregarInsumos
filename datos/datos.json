@@ -1,0 +1,146 @@
+{
+  "remito": "0045-00098169",
+  "pedido": "785899",
+  "productos": [
+    {
+      "cantidad": "1",
+      "lote": "231120151624 001 IC04 026693 T",
+      "marca": "dc-premium",
+      "vencimiento": "2028-10-31",
+      "nne": "5064048",
+      "precio": "1"
+    },
+    {
+      "cantidad": "1",
+      "lote": "230620085823 001 1004 197268 A",
+      "marca": "dc-premium",
+      "vencimiento": "2028-05-31",
+      "nne": "5022847",
+      "precio": "2"
+    },
+    {
+      "cantidad": "1",
+      "lote": "231120148524 001 IC04 028701 J",
+      "marca": "dc-premium",
+      "vencimiento": "2028-10-31",
+      "nne": "5022847",
+      "precio": "3"
+    },
+    {
+      "cantidad": "2",
+      "lote": "230920131724 001 1C04 010455 X",
+      "marca": "dc-premium",
+      "vencimiento": "2028-08-31",
+      "nne": "5047535",
+      "precio": "4"
+    },
+    {
+      "cantidad": "1",
+      "lote": "231120151824 001 IC04 028693 T",
+      "marca": "dc-premium",
+      "vencimiento": "2028-10-31",
+      "nne": "5047535",
+      "precio": "5"
+    },
+    {
+      "cantidad": "1",
+      "lote": "231220186224 001 IC04 044898 D",
+      "marca": "dc-premium",
+      "vencimiento": "2028-11-30",
+      "nne": "5050335",
+      "precio": "6"
+    },
+    {
+      "cantidad": "120",
+      "lote": "240220024524 001 IC04 106222 G",
+      "marca": "dc-premium",
+      "vencimiento": "2029-01-31",
+      "nne": "5053307",
+      "precio": "8"
+    },
+    {
+      "cantidad": "120",
+      "lote": "240520050024 001 1004 135267 R",
+      "marca": "dc-premium",
+      "vencimiento": "2029-04-30",
+      "nne": "5053307",
+      "precio": "9"
+    },
+    {
+      "cantidad": "21086",
+      "lote": "3014",
+      "marca": "dc-premium",
+      "vencimiento": "2029-08-31",
+      "nne": "9007245",
+      "precio": "10"
+    },
+    {
+      "cantidad": "30",
+      "lote": "3060",
+      "marca": "ayep",
+      "vencimiento": "2030-01-31",
+      "nne": "9007249",
+      "precio": "11"
+    },
+    {
+      "cantidad": "40",
+      "lote": "RZJ2",
+      "marca": "ayep",
+      "vencimiento": "2029-12-10",
+      "nne": "9007261",
+      "precio": "12"
+    },
+    {
+      "cantidad": "40",
+      "lote": "20241101 25 001 [004 056082 P",
+      "marca": "dc-premium",
+      "vencimiento": "2029-11-30",
+      "nne": "9007280",
+      "precio": "13"
+    },
+    {
+      "cantidad": "30",
+      "lote": "RY82",
+      "marca": "dc-premium",
+      "vencimiento": "2029-11-08",
+      "nne": "9007288",
+      "precio": "14"
+    },
+    {
+      "cantidad": "1",
+      "lote": "RY82",
+      "marca": "dc-premium",
+      "vencimiento": "2029-11-08",
+      "nne": "9007289",
+      "precio": "15"
+    },
+    {
+      "cantidad": "2",
+      "lote": "20241101 25 001 1C04 058082 P",
+      "marca": "dc-premium",
+      "vencimiento": "2029-11-30",
+      "nne": "9007290",
+      "precio": "16"
+    },
+    {
+      "cantidad": "3",
+      "lote": "20241101 25 001 1C04 056082 P",
+      "marca": "dc-premium",
+      "vencimiento": "2029-11-30",
+      "nne": "9007292",
+      "precio": "17"
+    },
+    {
+      "cantidad": "1",
+      "lote": "20241101 25 001 1C04 056082 P",
+      "marca": "dc-premium",
+      "vencimiento": "2029-11-30",
+      "nne": "9007293",
+      "precio": "18"
+    }
+  ],
+  "metadatos": {
+    "extraido_en": "2025-03-21T19:09:49.178Z",
+    "fuente": "Gestión de Remitos"
+  }
+}
