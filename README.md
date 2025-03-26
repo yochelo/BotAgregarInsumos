@@ -32,6 +32,7 @@ Este proyecto automatiza el ingreso de insumos médicos al sistema hospitalario 
 
 ## 📁 Estructura del proyecto
 
+```text
 /BotAgregarInsumos
 ├── CheloRemitos.py
 ├── ConvertirExcel-Json.py
@@ -46,6 +47,8 @@ Este proyecto automatiza el ingreso de insumos médicos al sistema hospitalario 
 ├── app-debug.apk         (no incluido en el repo)
 ├── server.bat            (script para correr en localhost)
 └── README.md
+```
+
 
 ---
 
