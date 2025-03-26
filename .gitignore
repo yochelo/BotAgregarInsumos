@@ -172,3 +172,36 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+.env
+.venv
+*.sqlite3
+*.db
+*.bak
+
+# Node.js
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+package-lock.json
+
+# Datos sensibles
+*.xlsx
+*.json
+*.txt
+.DS_Store
+
+# VSCode
+.vscode/
+
+# Otros
+*.log
