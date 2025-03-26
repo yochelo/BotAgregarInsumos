@@ -26,7 +26,7 @@ for index, row in df.iterrows():
     proveedor_nne = []
 
     for col in [5, 8, 11]:
-        valor = str(row[col]).strip() if not pd.isna(row[col]) else None
+        valor = str(int(row[col])) if not pd.isna(row[col]) else None
 
         if valor:
             proveedor_nne.append(valor)
