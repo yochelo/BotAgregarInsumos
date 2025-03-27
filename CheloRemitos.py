@@ -1,274 +1,360 @@
-from colorama import Fore, Style
-from colorama import init, Fore, Style
-init(autoreset=True)  # 🔥 Esto resetea automáticamente los colores después de cada print
-import time
+﻿import json
+from datetime import datetime
+import sys
 import os
-import json
+from colorama import Fore, Style, init
+import time  
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.support.ui import Select
+import pandas as pd
+from pydrive.auth import GoogleAuth
+from pydrive.drive import GoogleDrive
 
-# Configuración para Chrome en modo depuración
-debugging_port = 9223
-options = webdriver.ChromeOptions()
-options.debugger_address = f"localhost:{debugging_port}"
+# Inicializar colorama para habilitar los colores en la consola de Windows
+init(autoreset=True)
 
-driver_path = r"C:\Users\lgv\Desktop\Chelo\chromedriver_win32\chromedriver.exe"
-service = Service(driver_path)
-driver = webdriver.Chrome(service=service, options=options)
-wait = WebDriverWait(driver, 15)
+# Redirigir errores al log pero también mostrarlos en consola
+log_file = "error_log.txt"
+sys.stderr = open(log_file, "w", buffering=1)
 
-# Leer el JSON
-json_path = r"C:\Users\lgv\Desktop\Chelo\Remitos\datos\datos.json"
-with open(json_path, "r", encoding="utf-8") as f:
-    datos = json.load(f)
+def log_error(message):
+    print(f"{Fore.RED}{message}{Style.RESET_ALL}")
+    with open(log_file, "a") as log:
+        log.write(message + "\n")
 
-remito = datos.get("remito", "")
-pedido = datos.get("pedido", "")
-productos = datos.get("productos", [])
-
-# Aquí es donde comenzamos con la interacción en la web
-# Esperar y seleccionar "HOSPITAL ALVAREZ" en Origen
+# Configuración básica
 try:
-    campo_origen = wait.until(expected_conditions.presence_of_element_located((By.NAME, "idorigen")))
-    select_origen = Select(campo_origen)
-    select_origen.select_by_visible_text("HOSPITAL ALVAREZ")
-    print("Se ha seleccionado 'HOSPITAL ALVAREZ' en el campo de origen.")
-except Exception as e:
-    print(f"Error al seleccionar origen: {str(e)}")
+    # Ignorar errores de certificado
+    chrome_options = Options()
+    chrome_options.add_argument('--ignore-certificate-errors')
+    chrome_options.add_argument('--ignore-ssl-errors')
+    chrome_options.add_argument('--start-maximized')  # Opcional: iniciar maximizado
 
-# Esperar a que el dropdown de destino esté presente
+    # Conexión al navegador Chrome en modo depuración
+    chrome_options.debugger_address = "localhost:9223"
+
+    # Ruta al chromedriver
+    driver_path = r"C:\Users\lgv\Desktop\Chelo\chromedriver_win32\chromedriver.exe"
+    service = Service(driver_path)
+
+    # Intentar conectar al navegador
+    print(f"{Fore.CYAN}Intentando conectar con Chrome en modo depuración...{Style.RESET_ALL}")
+    driver = webdriver.Chrome(service=service, options=chrome_options)
+    print(f"{Fore.CYAN}¡Conexión exitosa con Chrome!{Style.RESET_ALL}")
+except Exception as e:
+    log_error(f"Error al iniciar WebDriver: {str(e)}")
+    sys.exit()
+
+# Configuración de espera dinámica
+wait = WebDriverWait(driver, 15)  # Tiempo máximo para las esperas dinámicas
+
+# Verificar ventanas abiertas
 try:
-    campo_destino = wait.until(expected_conditions.presence_of_element_located((By.NAME, "iddestino")))
-
-    # Crear objeto Select
-    select_destino = Select(campo_destino)
-
-    # Seleccionar la opción "BIOMEDICOS"
-    select_destino.select_by_visible_text("BIOMEDICOS")
-    print("Se ha seleccionado 'BIOMEDICOS' en el campo de destino.")
+    print(f"{Fore.CYAN}Verificando ventanas abiertas...{Style.RESET_ALL}")
+    windows = driver.window_handles
+    if not windows:
+        log_error("No se detectaron ventanas abiertas en Chrome.")
+        sys.exit()
+    print(f"{Fore.CYAN}Ventanas disponibles: {windows}{Style.RESET_ALL}")
 except Exception as e:
-    print(f"Error al seleccionar destino: {str(e)}")
+    log_error(f"Error al obtener ventanas abiertas: {str(e)}")
+    sys.exit()
 
-# Esperar y completar el campo "Nro. de Remito"
+# Verificar el título de la página
 try:
-    campo_remito = wait.until(expected_conditions.presence_of_element_located((By.NAME, "remito")))
-    campo_remito.clear()  # Limpiar cualquier valor previo
-    campo_remito.send_keys(remito)  # Ingresar el valor desde el JSON
-    print(f"Se ha ingresado el Nro. de Remito: {remito}")
+    print(f"{Fore.CYAN}Verificando título de la página...{Style.RESET_ALL}")
+    page_title = driver.title
+    print(f"{Fore.CYAN}Título detectado: {page_title}{Style.RESET_ALL}")
 except Exception as e:
-    print(f"Error al ingresar el Nro. de Remito: {str(e)}")
+    log_error(f"No se pudo obtener el título de la página: {str(e)}")
 
-# Esperar y completar el campo "Nro. de Orden de Compra"
-try:
-    campo_orden_compra = wait.until(expected_conditions.presence_of_element_located((By.NAME, "nro_orden_compra")))
-    campo_orden_compra.clear()  # Limpiar cualquier valor previo
-    campo_orden_compra.send_keys("O.C. 15/8")  # Ingresar el valor fijo
-    print('Se ha ingresado "O.C. 15/8" en el campo de Nro. de Orden de Compra.')
-except Exception as e:
-    print(f"Error al ingresar el Nro. de Orden de Compra: {str(e)}")
+print(f"{Fore.CYAN}Todo listo para interactuar con la página.{Style.RESET_ALL}")
 
-# Esperar y completar el campo "Nro. de Pedido"
-try:
-    campo_pedido = wait.until(expected_conditions.presence_of_element_located((By.NAME, "nro_pedido")))
-    campo_pedido.clear()  # Limpiar cualquier valor previo
-    campo_pedido.send_keys(pedido)  # Ingresar el valor desde el JSON
-    print(f"Se ha ingresado el Nro. de Pedido: {pedido}")
-except Exception as e:
-    print(f"Error al ingresar el Nro. de Pedido: {str(e)}")
+# Leer el archivo Excel
+ruta_excel = "planilla.xlsx"
+data = pd.read_excel(ruta_excel)
 
-# Esperar y hacer clic en el botón "ENVIAR"
-try:
-    boton_enviar = wait.until(expected_conditions.element_to_be_clickable((By.XPATH, "//input[@type='button' and @value='Enviar']")))
-    boton_enviar.click()
-    print("Se ha hecho clic en el botón ENVIAR.")
-except Exception as e:
-    print(f"Error al hacer clic en el botón ENVIAR: {str(e)}")
-    
-# ------------------------------
+# Lista para el reporte
+reporte = []
 
-# Leer equivalencias NNE
-equivalencias_path = r"C:\Users\lgv\Desktop\Chelo\Remitos\datos\nne_equivalencias.json"
+# Bandera para controlar si venimos de una demanda insatisfecha
+saltar_paso_6 = False
 
-with open(equivalencias_path, "r", encoding="utf-8") as f:
-    equivalencias = json.load(f)
+# Bandera para controlar si venimos de "Seleccionar Otro Insumo"
+seleccionar_otro_insumo = False
 
-# Convertimos las equivalencias en un diccionario para acceso rápido
-diccionario_nne = {}
+# Suponemos que el usuario ya está en el paso 2
+print(f"{Fore.GREEN}INICIANDO OK{Style.RESET_ALL}")
 
-for item in equivalencias:
-    sigheos_nne = item.get("sigheos_nne")
-    proveedor_nne_list = item.get("proveedor_nne", [])
-    for prov_nne in proveedor_nne_list:
-        diccionario_nne[prov_nne.strip()] = sigheos_nne.strip()
+# Iterar sobre los ítems del Excel
+for index, row in data.iterrows():
+    nombre_item = row["item"]
+    solicitadas = row["solicitada"]
+    otorgadas = row["otorgada"]
 
-print("📌 Diccionario de equivalencias cargado correctamente.")
+    # Saltar ítems sin cantidades válidas
+    if pd.isna(solicitadas) or pd.isna(otorgadas):
+        continue
 
-# ----------- BUCLE ------------------
-nne_errores = []
-
-def procesar_producto(producto, es_primer_producto):
-    
-    # 🔹 PRIMER PASO: HACER CLIC EN "INGRESAR INSUMO" (solo en el primer producto)
-    if es_primer_producto:
-        try:
-            boton_ingresar_insumo = wait.until(expected_conditions.element_to_be_clickable((By.LINK_TEXT, "Ingresar Insumo")))
-            boton_ingresar_insumo.click()
-            print("🔵 Se ha hecho clic en 'Ingresar Insumo'.")
-        except Exception as e:
-            print(f"❌ Error al hacer clic en 'Ingresar Insumo': {str(e)}")
-            return False
-
-    while True:
-        # 🔍 Verificamos si el NNE tiene equivalencia
-        nne_original = producto['nne'].strip()
-        nne_equivalente = diccionario_nne.get(nne_original, nne_original)  # Si no tiene equivalencia, queda igual
-
-        try:
-            # 🔹 LIMPIAMOS CAMPO Y ENVIAMOS EL NNE CON ESPACIO ADELANTE
-            campo_busqueda = wait.until(expected_conditions.presence_of_element_located((By.NAME, "__buscar")))
-            campo_busqueda.clear()
-            time.sleep(0.5)
-            campo_busqueda.send_keys(f" {nne_equivalente}")
-            print(f'✅ Se ha ingresado "{nne_equivalente}" en el campo de búsqueda.')
-
-            # 🔹 HACEMOS CLIC EN BUSCAR
-            boton_buscar = wait.until(expected_conditions.element_to_be_clickable((By.XPATH, "//input[@type='button' and @value='Buscar por sistema']")))
-            boton_buscar.click()
-            print("✅ Se ha hecho clic en 'Buscar por sistema'.")
-
-        except Exception as e:
-            print(f"❌ Error al ingresar el NNE en el campo de búsqueda: {str(e)}")
-            return False
-
-        # 🔹 CAMBIAMOS A LA VENTANA EMERGENTE Y BUSCAMOS EL NNE
-        try:
-            main_window = driver.current_window_handle
-            wait.until(lambda d: len(d.window_handles) > 1)
-            new_window = [window for window in driver.window_handles if window != main_window][0]
-            driver.switch_to.window(new_window)
-            print("🔀 Se ha cambiado a la ventana emergente.")
-
-            # 🔍 BUSCAMOS EL NNE EXACTO (sin espacio)
-            xpath_nne = f"//a[text()='{nne_equivalente}']"
-            elemento_nne = WebDriverWait(driver, 3).until(
-                expected_conditions.element_to_be_clickable((By.XPATH, xpath_nne))
-            )
-            print(f"✅ Se ha encontrado y seleccionado el insumo con NNE: {nne_equivalente}")
-            elemento_nne.click()
-
-            # Volvemos a la ventana principal
-            driver.switch_to.window(main_window)
-            print("🔙 Se ha regresado a la ventana principal.")
-
-        except Exception as e:
-            print(f"❌ Error al encontrar/clickeando NNE '{nne_equivalente}' en ventana emergente: {str(e)}")
-            
-            # Cerramos ventana emergente si quedó abierta
-            if len(driver.window_handles) > 1:
-                driver.close()
-            driver.switch_to.window(main_window)
-            return False
-
-        # 🟢 COMPLETAMOS CAMPOS DE DETALLE DEL LOTE
-        try:
-            campo_lote = wait.until(expected_conditions.presence_of_element_located((By.NAME, "nrolote")))
-            campo_lote.clear()
-            campo_lote.send_keys(producto["lote"])
-            print(f'🟢 Lote: {producto["lote"]}')
-        except Exception as e:
-            print(f"❌ Error al ingresar el número de lote: {str(e)}")
-
-        try:
-            campo_cantidad = wait.until(expected_conditions.presence_of_element_located((By.NAME, "cantidad")))
-            campo_cantidad.clear()
-            campo_cantidad.send_keys(producto["cantidad"])
-            print(f'🟢 Cantidad: {producto["cantidad"]}')
-        except Exception as e:
-            print(f"❌ Error al ingresar la cantidad: {str(e)}")
-
-        try:
-            campo_precio = wait.until(expected_conditions.presence_of_element_located((By.NAME, "precio")))
-            campo_precio.clear()
-            campo_precio.send_keys(producto["precio"])
-            print(f'🟢 Precio unitario: {producto["precio"]}')
-        except Exception as e:
-            print(f"❌ Error al ingresar el precio unitario: {str(e)}")
-
-        try:
-            campo_vencimiento = wait.until(expected_conditions.presence_of_element_located((By.NAME, "vencimiento")))
-            campo_vencimiento.clear()
-            campo_vencimiento.send_keys(producto["vencimiento"])
-            print(f'🟢 Vencimiento: {producto["vencimiento"]}')
-        except Exception as e:
-            print(f"❌ Error al ingresar la fecha de vencimiento: {str(e)}")
-
-        try:
-            campo_marca = wait.until(expected_conditions.presence_of_element_located((By.NAME, "nomcom")))
-            campo_marca.clear()
-            campo_marca.send_keys(producto.get("marca", ""))
-            print(f'🟢 Marca: {producto.get("marca", "")}')
-        except Exception as e:
-            print(f"❌ Error al ingresar la marca: {str(e)}")
-
-        try:
-            boton_enviar = wait.until(expected_conditions.element_to_be_clickable((By.XPATH, '//input[@type="button" and @value="Enviar"]')))
-            boton_enviar.click()
-            print("✅ Se ha presionado el botón 'ENVIAR'.")
-        except Exception as e:
-            print(f"❌ Error al presionar el botón ENVIAR: {str(e)}")
-
-        # 🔄 SOLO hacemos clic en "Ingresar Insumo" si NO es el último producto
-        if indice_producto_actual < total_productos - 1:
-            try:
-                boton_ingresar_insumo = wait.until(expected_conditions.element_to_be_clickable((By.LINK_TEXT, "Ingresar Insumo")))
-                boton_ingresar_insumo.click()
-                print(f"🔄 Se ha hecho clic en 'Ingresar Insumo' para procesar el siguiente producto ({indice_producto_actual + 2} de {total_productos}).")
-            except Exception as e:
-                print(f"⚠️ Error al hacer clic en 'Ingresar Insumo': {str(e)}")
-        else:
-            print("✅ Último producto ingresado. No es necesario hacer clic en 'Ingresar Insumo'.")
-
-        break  # Producto procesado correctamente, salimos del while
-
-    return True
-
-
-
-# 🔹 BUCLE PRINCIPAL PARA ITERAR SOBRE LOS PRODUCTOS
-total_productos = len(productos)
-indice_producto_actual = 0
-
-if not productos:
-    print("No hay productos para procesar. Finalizando...")
-    exit()
-
-while indice_producto_actual < total_productos:
     try:
-        # El primer producto requiere hacer clic en "Ingresar Insumo", los demás no
-        es_primer_producto = indice_producto_actual == 0
-
-        resultado = procesar_producto(productos[indice_producto_actual], es_primer_producto)
-        
-        if resultado:  # Solo incrementamos si el producto se procesó correctamente
-            indice_producto_actual += 1
+        # Paso 2: Hacer clic en "Agregar Insumo" solo si no venimos de "Seleccionar Otro Insumo"
+        if not seleccionar_otro_insumo:
+            print("Haciendo clic en 'Agregar Insumo'...")
+            boton_agregar_insumo = wait.until(
+                EC.element_to_be_clickable((By.LINK_TEXT, "Agregar Insumo"))
+            )
+            boton_agregar_insumo.click()
         else:
-            print(f"Saltando producto {indice_producto_actual + 1} y pasando al siguiente.")
-            indice_producto_actual += 1  # 🔹 Se asegura de avanzar al siguiente producto
+            # Reiniciar la bandera para el próximo ítem
+            seleccionar_otro_insumo = False
+
+        # Paso 3: Buscar el NNE en el cuadro de búsqueda
+        print(f"Buscando NNE para el ítem: {nombre_item}...")
+
+        # Leer el archivo Excel del diccionario
+        ruta_diccionario = ruta_diccionario = "diccionario.xlsx"
+
+        diccionario = pd.read_excel(ruta_diccionario)
+
+        # Filtrar el NNE correspondiente al ítem
+        nne_row = diccionario[diccionario['item'] == nombre_item]
+
+        # Verificar si se encontró el NNE
+        if not nne_row.empty:
+            nne = nne_row.iloc[0]['NNE']
+            print(f"NNE encontrado: {nne}")
+        else:
+            raise Exception(f"NNE no encontrado para el ítem: {nombre_item}")
+
+        # Interactuar con la página usando el NNE
+        cuadro_busqueda = wait.until(EC.presence_of_element_located((By.NAME, "__buscar")))
+        cuadro_busqueda.clear()  # Limpiar el cuadro antes de escribir
+        cuadro_busqueda.send_keys(f" {nne}")  # Nota: espacio inicial requerido
+        boton_buscar = driver.find_element(By.XPATH, "//input[@value='Buscar por sistema']")
+        boton_buscar.click()
+
+
+
+        # Paso 4: Seleccionar el ítem de la ventana emergente
+        try:
+            print(f"Esperando el ítem relacionado al NNE: {nne} en la ventana emergente.")
+
+            # Detectar si hay un cambio de ventana
+            main_window = driver.current_window_handle  # Ventana principal
+            wait.until(EC.number_of_windows_to_be(2))  # Esperar a que haya 2 ventanas abiertas
+            new_window = [window for window in driver.window_handles if window != main_window][0]
+            
+            # Cambiar al nuevo contexto (ventana emergente)
+            driver.switch_to.window(new_window)
+            print("Ventana emergente detectada, interactuando con el contenido.")
+
+            # Buscar el enlace que contiene el NNE como texto
+            xpath_nne = f"//a[contains(text(), '{nne}')]"
+            elemento_nne = wait.until(EC.element_to_be_clickable((By.XPATH, xpath_nne)))
+            print(f"Elemento encontrado: {elemento_nne.text}. Intentando hacer clic.")
+            elemento_nne.click()
+            print(f"Ítem relacionado al NNE {nne} seleccionado correctamente.")
+
+            # Regresar al contexto principal
+            driver.switch_to.window(main_window)  # Regresa a la ventana principal
+
+        except Exception as e:
+            print(f"{Fore.RED}ERROR: No se pudo seleccionar el ítem en la ventana emergente. Detalle: {str(e)}{Style.RESET_ALL}")
+            break
+
+        # Paso 5: Completar cantidades pedidas y despachadas
+        try:
+            print("Rellenando los campos de cantidad pedida y cantidad despachada...")
+            saltar_paso_6 = False  # Definir la variable por defecto
+
+            # Seleccionar y llenar el campo de "Cantidad pedida"
+            campo_pedida = wait.until(EC.presence_of_element_located((By.NAME, "cant_ped")))
+            campo_pedida.clear()
+            campo_pedida.send_keys(str(int(solicitadas)))
+            print(f"Cantidad pedida: {solicitadas}")
+
+            # Seleccionar y llenar el campo de "Cantidad despachada"
+            campo_despachada = wait.until(EC.presence_of_element_located((By.NAME, "cant")))
+            campo_despachada.clear()
+            campo_despachada.send_keys(str(int(otorgadas)))
+            print(f"Cantidad despachada: {otorgadas}")
+
+            # Verificar si es demanda insatisfecha (otorgadas == 0)
+            if otorgadas == 0:
+                print(f"{Fore.YELLOW}{Style.BRIGHT}Demanda Insatisfecha detectada para el ítem {nombre_item}. Procesando flujo correspondiente...{Style.RESET_ALL}")
+                reporte.append(f"{Fore.YELLOW}{Style.BRIGHT}{nne} | {nombre_item} | pedidos: {solicitadas} - despachados: 0 | DEMANDA INSATISFECHA{Style.RESET_ALL}")
+ 
+                saltar_paso_6 = True  # Marcar para saltar el Paso 6
+
+            # Intentar enviar el formulario
+            boton_enviar = wait.until(EC.element_to_be_clickable(
+                (By.XPATH, "//input[@type='submit' and @name='enviar' and @value='Enviar']")
+            ))
+            driver.execute_script("arguments[0].scrollIntoView();", boton_enviar)
+            driver.execute_script("arguments[0].click();", boton_enviar)
+            print("Formulario enviado correctamente.")
+
+            # Manejar alertas inesperadas (caso "Sin Stock")
+            time.sleep(0.5)  # Dar tiempo para que aparezca la alerta
+            try:
+                alerta = driver.switch_to.alert
+                mensaje_alerta = alerta.text
+                print(f"{Fore.RED}{Style.BRIGHT}Stock Insuficiente: {mensaje_alerta}{Style.RESET_ALL}")
+                alerta.accept()  # Hacer clic en "Aceptar" en la alerta
+                print("Alerta cerrada correctamente.")
+
+                if "Debe ingresar una cantidad menor o igual al stock del insumo" in mensaje_alerta:
+                    # Reportar el ítem como "Stock Insuficiente"
+                    reporte.append(f"{Fore.RED}{Style.BRIGHT}{nne} | {nombre_item} | pedidos: {solicitadas} - despachados: {otorgadas} | STOCK INSUFICIENTE{Style.RESET_ALL}")
+
+                    # Hacer clic en "Seleccionar Otro Insumo"
+                    boton_otro_insumo = wait.until(EC.element_to_be_clickable((By.LINK_TEXT, "Seleccionar Otro Insumo")))
+                    boton_otro_insumo.click()
+                    print("Clic realizado en 'Seleccionar Otro Insumo'. Preparando flujo para el siguiente ítem...")
+
+                    seleccionar_otro_insumo = True  # Activar la bandera para evitar repetir Paso 2
+                    continue  # Saltar al siguiente ítem en el bucle
+            except:
+                print("No se detectó alerta después de enviar el formulario. Continuando flujo normal.")
+
+            # Registro exitoso en caso de que no haya errores
+            if not saltar_paso_6:
+                print(f"{Fore.GREEN}Item {nombre_item} correctamente cargado{Style.RESET_ALL}")
+                reporte.append(f"{Fore.GREEN}{Style.BRIGHT}{nne} | {nombre_item} | pedidos: {solicitadas} - despachados: {otorgadas} | OK{Style.RESET_ALL}")
+
+        except Exception as e:
+            print(f"{Fore.RED}ERROR: Falló el envío del formulario. Detalle: {str(e)}{Style.RESET_ALL}")
+            reporte.append(f"{Fore.RED}{nne} | {nombre_item} | ERROR al completar el formulario{Style.RESET_ALL}")
+            continue
+
+        # Paso 6: Verificar y hacer clic en "click aquí" si corresponde
+        if not saltar_paso_6:  # Ejecutar el Paso 6 solo si no se detecta "Demanda Insatisfecha"
+            try:
+                print("Verificando si es necesario hacer clic en 'click aquí' para continuar...")
+                enlace_click_aqui = wait.until(
+                    EC.element_to_be_clickable((By.LINK_TEXT, "click aqui"))
+                )
+                enlace_click_aqui.click()
+                print("Clic realizado en 'click aquí'. Continuando con el proceso...")
+            except Exception as e:
+                print(f"{Fore.RED}ERROR: No se pudo hacer clic en 'click aquí'. Detalle: {str(e)}{Style.RESET_ALL}")
+                reporte.append(f"{Fore.RED}{nne} | {nombre_item} | ERROR al avanzar al siguiente paso{Style.RESET_ALL}")
+                break
+        else:
+            print("Saltando Paso 6 debido a 'Demanda Insatisfecha'.")
 
     except Exception as e:
-        print(f"Error en el flujo del bucle: {str(e)}")
-        break
+        print(
+            f"{Fore.RED}ERROR: El bot se detuvo al procesar el ítem {nombre_item} con NNE {nne}. Detalle: {str(e)}{Style.RESET_ALL}"
+        )
+        reporte.append(f"{Fore.RED}{nne} | {nombre_item} | ERROR general{Style.RESET_ALL}")
 
-if nne_errores:
-    print(Fore.RED + "\n🔴 LISTADO DE NNE NO ENCONTRADOS:" + Style.RESET_ALL)
-    for nne in nne_errores:
-        print(Fore.RED + f"   - {nne}" + Style.RESET_ALL)
+# Crear listas separadas para cada color
+verde = [linea for linea in reporte if Fore.GREEN in linea]
+amarillo = [linea for linea in reporte if Fore.YELLOW in linea]
+rojo = [linea for linea in reporte if Fore.RED in linea]
+
+# Combinar las listas reordenadas
+reporte_ordenado = verde + amarillo + rojo
+
+
+from colorama import Fore, Style
+
+# Imprimir el reporte ordenado y limpio
+print("\n" + Fore.WHITE + "=" * 100 + Style.RESET_ALL)  # Línea blanca superior
+print(f"{Fore.CYAN}{Style.BRIGHT}                                    R E P O R T E    F I N A L{Style.RESET_ALL}")  # Título en celeste
+print(Fore.WHITE + "=" * 100 + Style.RESET_ALL)  # Línea blanca inferior
+for linea in reporte_ordenado:
+    # Limpieza de caracteres no deseados
+    texto_limpio = linea.replace("←[0m", "").replace("←[", "").replace("[0m", "")
+    print(texto_limpio)
+
+#REPORTES GUARDADOS EN "/REPORTES" POR PLANILLA 
+
+# Asegurarse de que la carpeta Reportes exista
+os.makedirs("Reportes", exist_ok=True)
+
+# Pedir metadatos al final, sin condicionar por errores
+servicio = input("Ingrese el código del servicio (ej: u15): ").strip().lower()
+
+# Pedir fecha en formato corto (DD/MM)
+fecha_input = input("Ingrese la fecha del despacho (DD/MM): ").strip()
+
+try:
+    # Agregamos el año actual y convertimos a formato estándar
+    dia, mes = map(int, fecha_input.split("/"))
+    anio_actual = datetime.now().year
+    fecha_obj = datetime(anio_actual, mes, dia)
+    fecha = fecha_obj.strftime("%Y-%m-%d")  # Esto te da el formato final
+except Exception as e:
+    print(f"{Fore.RED}Formato de fecha inválido. Usá DD/MM. Error: {e}{Style.RESET_ALL}")
+    sys.exit()
+
+# Timestamp para nombre del archivo
+ahora = datetime.now()
+hora_str = ahora.strftime("%H-%M-%S")
+nombre_archivo = f"Reportes/{fecha}_{hora_str}_{servicio}.json"
+
+# Construir estructura del log completo
+log_completo = {
+    "servicio": servicio,
+    "fecha": fecha,
+    "resultados": []
+}
+
+for linea in reporte_ordenado:
+    # Limpiar colores
+    linea_limpia = linea.replace(Fore.RED, "").replace(Fore.GREEN, "").replace(Fore.YELLOW, "").replace(Style.BRIGHT, "").replace(Style.RESET_ALL, "")
+    partes = linea_limpia.split("|")
+    if len(partes) >= 4:
+        log_completo["resultados"].append({
+            "nne": partes[0].strip(),
+            "item": partes[1].strip(),
+            "pedidos": partes[2].split(":")[1].split("-")[0].strip(),
+            "despachados": partes[2].split("-")[1].split(":")[1].strip(),
+            "estado": partes[3].strip()
+        })
+
+# Guardar el archivo
+with open(nombre_archivo, "w", encoding="utf-8") as f:
+    json.dump(log_completo, f, indent=4, ensure_ascii=False)
+
+print(f"{Fore.CYAN}Reporte JSON guardado en: {nombre_archivo}{Style.RESET_ALL}")
+
+
+# Subir el archivo al GoogleDrive
+print("Autenticando...")
+gauth = GoogleAuth()
+gauth.LoadClientConfigFile("client_secret.json")  # Tu archivo de credenciales
+gauth.LoadCredentialsFile("mycreds.txt")
+
+if gauth.credentials is None:
+    gauth.LocalWebserverAuth()
+elif gauth.access_token_expired:
+    gauth.Refresh()
 else:
-    print(Fore.GREEN + "\n✅ No hubo errores de NNE. Todo procesado correctamente." + Style.RESET_ALL)
+    gauth.Authorize()
 
+gauth.SaveCredentialsFile("mycreds.txt")
+print("Autenticación completada.")
 
-input("Presiona Enter para salir...")
+drive = GoogleDrive(gauth)
+print("Instancia de GoogleDrive creada.")
+
+# ID de la carpeta "Reportes"
+folder_id = """Acá va la el folder de GoogleDrive que necesites (la última parte del URL luego del último "/" ) """
+
+print("Subiendo archivo...")
+archivo_drive = drive.CreateFile({
+    'title': os.path.basename(nombre_archivo),
+    'parents': [{'id': folder_id}]
+})
+archivo_drive.SetContentFile(nombre_archivo)
+archivo_drive.Upload()
+print(f"{Fore.CYAN}✅ Subido correctamente: {archivo_drive['title']}{Style.RESET_ALL}")
+
+input("Presioná Enter para cerrar...")
